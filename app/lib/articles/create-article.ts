@@ -1,7 +1,4 @@
-type Article = {
-  title: string;
-  content: string;
-};
+import { Article } from "./type/types";
 
 export const createArticle = async (article: Article) => {
   const response = await fetch("/api/article", {
