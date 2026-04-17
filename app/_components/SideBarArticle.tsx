@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -17,20 +18,13 @@ import { FileText } from "lucide-react";
 import { getArticles } from "../lib/articles/get-article";
 
 interface Article {
-  id: string;
+  id: number;
   title: string;
   content: string;
 }
 
-interface AppSidebarProps {
-  onSelectArticle?: (title: string) => void;
-  selectedTitle?: string;
-}
-
-export function SideBarArticle({
-  onSelectArticle,
-  selectedTitle,
-}: AppSidebarProps) {
+export function SideBarArticle() {
+  const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
 
   useEffect(() => {
@@ -45,7 +39,6 @@ export function SideBarArticle({
         </span>
         <SidebarTrigger className="ml-auto" />
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -56,12 +49,11 @@ export function SideBarArticle({
               {articles.map((article) => (
                 <SidebarMenuItem key={article.id}>
                   <SidebarMenuButton
-                    isActive={selectedTitle === article.title}
-                    onClick={() => onSelectArticle?.(article.title)}
-                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent rounded-md transition-colors"
+                    onClick={() => router.push(`/article/${article.id}`)}
+                    className="w-full text-left px-4 py-2 text-sm"
                   >
                     <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
-                    <span className="truncate">{article.title}</span>
+                    <p className="truncate">{article.title}</p>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

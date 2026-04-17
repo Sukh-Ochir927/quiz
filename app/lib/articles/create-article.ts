@@ -1,12 +1,16 @@
-import { Article } from "./type/types";
-
-export const createArticle = async (article: Article) => {
-  const response = await fetch("/api/article", {
+export const createArticle = async (article: {
+  title: string;
+  content: string;
+}): Promise<{ id: number; title: string; content: string }> => {
+  const res = await fetch("/api/article", {
     method: "POST",
-    body: JSON.stringify(article),
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(article),
   });
-  console.log(response);
 
-  return response;
+  if (!res.ok) {
+    throw new Error("Failed to create article");
+  }
+
+  return res.json();
 };

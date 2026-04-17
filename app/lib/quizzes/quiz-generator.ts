@@ -1,18 +1,7 @@
-type QuizGeneratorProps = {
-  title: string;
-  content: string;
-};
-
-export const generateQuiz = async ({ title, content }: QuizGeneratorProps) => {
-  const response = await fetch("/api/quiz", {
+export const generateQuiz = async (articleId: number): Promise<void> => {
+  await fetch("/api/quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, content }),
+    body: JSON.stringify({ articleId }),
   });
-
-  if (!response.ok) {
-    throw new Error(`Quiz generation failed: ${response.statusText}`);
-  }
-
-  return response.json();
 };
