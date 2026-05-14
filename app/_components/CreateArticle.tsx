@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEventHandler, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -17,11 +18,17 @@ import { Sparkles, FileText } from "lucide-react";
 
 export const CreateArticle = () => {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
   const [article, setArticle] = useState({ title: "", content: "" });
   const [isLoading, setIsLoading] = useState(false);
 
   const onCreateArticle = async () => {
     if (!article.title || !article.content) return;
+    if (!isSignedIn) {
+      router.push("/sign-in");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await fetch("/api/quiz", {

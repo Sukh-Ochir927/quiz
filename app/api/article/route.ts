@@ -1,26 +1,43 @@
 import prisma from "@/app/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
-export const POST = async (request: NextRequest) => {
-  try {
-    const body = await request.json();
-    const { title, content } = body;
+export async function POST(req: Request) {
+  const { userId } = await auth();
 
-    const article = await prisma.article.create({
-      data: { title, content },
-    });
-
-    return NextResponse.json(article, { status: 201 });
-  } catch (error) {
-    console.error("Failed to create article:", error);
-    return NextResponse.json(
-      { error: "Failed to create article" },
-      { status: 500 },
-    );
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
-};
-export const GET = async () => {
-  const articles = await prisma.article.findMany();
 
-  return NextResponse.json(articles);
-};
+  const { title, content } = await req.json();
+  const user = await currentUser();
+
+  await prisma.user.upsert({
+    where: { id: userId },
+    update: {
+      email: user?.primaryEmailAddress?.emailAddress ?? `${userId}@clerk.local`,
+      name: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null,
+    },
+    create: {
+      id: userId,
+      email: user?.primaryEmailAddress?.emailAddress ?? `${userId}@clerk.local`,
+      name: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null,
+    },
+  });
+
+  const article = await prisma.article.create({
+    data: { title, content, userId },
+  });
+
+  return Response.json(article, { status: 201 });
+}
+
+export async function GET() {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const articles = await prisma.article.findMany({
+    where: { userId },
+  });
+
+  return Response.json(articles);
+}

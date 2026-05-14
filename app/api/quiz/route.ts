@@ -1,4 +1,5 @@
 import prisma from "@/app/lib/prisma";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import Groq from "groq-sdk";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -6,6 +7,27 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await currentUser();
+
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {
+        email: user?.primaryEmailAddress?.emailAddress ?? `${userId}@clerk.local`,
+        name: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null,
+      },
+      create: {
+        id: userId,
+        email: user?.primaryEmailAddress?.emailAddress ?? `${userId}@clerk.local`,
+        name: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null,
+      },
+    });
+
     const { article } = await req.json();
     const { title, content } = article;
 
@@ -70,6 +92,7 @@ export async function POST(req: NextRequest) {
         title,
         content,
         summary,
+        userId,
         quizzes: {
           create: quizzes.map((q) => ({
             question: q.question,

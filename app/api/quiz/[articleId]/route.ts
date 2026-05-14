@@ -1,4 +1,5 @@
 import prisma from "@/app/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (
@@ -6,10 +7,16 @@ export const GET = async (
   { params }: { params: Promise<{ articleId: string }> },
 ) => {
   try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { articleId } = await params;
 
     const questions = await prisma.quiz.findMany({
-      where: { articleId: Number(articleId) },
+      where: { articleId: Number(articleId), article: { userId } },
     });
 
     return NextResponse.json(questions, { status: 200 });

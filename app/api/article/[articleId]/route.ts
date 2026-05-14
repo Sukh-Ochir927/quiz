@@ -1,4 +1,5 @@
 import prisma from "@/app/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (
@@ -6,9 +7,15 @@ export const GET = async (
   { params }: { params: Promise<{ articleId: string }> },
 ) => {
   try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { articleId } = await params;
-    const article = await prisma.article.findUnique({
-      where: { id: Number(articleId) },
+    const article = await prisma.article.findFirst({
+      where: { id: Number(articleId), userId },
     });
 
     if (!article) {
@@ -20,4 +27,3 @@ export const GET = async (
     return NextResponse.json({ error: `${error}` }, { status: 500 });
   }
 };
-    

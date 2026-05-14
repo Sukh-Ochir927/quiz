@@ -1,5 +1,6 @@
 import prisma from "@/app/lib/prisma";
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { FileText, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,13 @@ interface Props {
 }
 
 export default async function ArticlePage({ params }: Props) {
+  const { userId } = await auth();
   const { articleId } = await params;
 
-  const article = await prisma.article.findUnique({
-    where: { id: Number(articleId) },
+  if (!userId) return notFound();
+
+  const article = await prisma.article.findFirst({
+    where: { id: Number(articleId), userId },
     include: { quizzes: true },
   });
 

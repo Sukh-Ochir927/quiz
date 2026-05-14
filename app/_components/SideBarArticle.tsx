@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import {
   Sidebar,
@@ -25,11 +26,14 @@ interface Article {
 
 export function SideBarArticle() {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
 
   useEffect(() => {
-    getArticles().then(setArticles);
-  }, []);
+    if (isSignedIn) getArticles().then(setArticles);
+  }, [isSignedIn]);
+
+  const visibleArticles = isSignedIn ? articles : [];
 
   return (
     <Sidebar>
@@ -46,7 +50,7 @@ export function SideBarArticle() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {articles.map((article) => (
+              {visibleArticles.map((article) => (
                 <SidebarMenuItem key={article.id}>
                   <SidebarMenuButton
                     onClick={() => router.push(`/article/${article.id}`)}
