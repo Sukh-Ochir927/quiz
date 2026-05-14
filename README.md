@@ -34,4 +34,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### Clerk environment variables
+
+For Vercel Production, add these exact environment variables in the Vercel project settings:
+
+```bash
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
+```
+
+Use keys from the same Clerk application/environment. A publishable key from one Clerk instance with a secret key from another can cause deployment/runtime errors such as `Missing publishableKey` or `Clerk Secret Key is invalid`.
+
+This app uses Next.js 16, so Clerk request protection lives in the root `proxy.ts` file. Do not add a legacy `middleware.ts` file for this project.
 # quiz
